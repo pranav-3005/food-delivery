@@ -4,12 +4,16 @@ import com.example.foodDood.DTO.DeliveryPartnerDTO.DeliveryPartnerRequest;
 import com.example.foodDood.DTO.deliveryPartnerOrderDTO.DeliveryPartnerOrderResponse;
 import com.example.foodDood.model.CustomerOrder;
 import com.example.foodDood.model.DeliveryPartner;
+import com.example.foodDood.model.configModel.User;
 import com.example.foodDood.repository.DeliveryPartnerRepo;
+import com.example.foodDood.repository.configRepository.UserRepo;
 import com.example.foodDood.transformer.DeliveryPartnerOrderTransformer;
 import com.example.foodDood.transformer.DeliveryPartnerTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -57,7 +61,23 @@ public class DeliveryPartnerService {
         }
 
         return new ResponseEntity<>(deliveryPartnerOrderResponseList,HttpStatus.FOUND);
-
-
     }
+
+    //config
+
+    @Autowired
+    UserRepo userRepo;
+    PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
+    public ResponseEntity addUser(String userName, String password) {
+        User user =new User();
+
+        user.setUserName(userName);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole("ROLE_DELIVERYPARTNER");
+
+        userRepo.save(user);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    //~config
 }

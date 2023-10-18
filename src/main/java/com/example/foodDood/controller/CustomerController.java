@@ -74,4 +74,13 @@ public class CustomerController {
     {
         return customerService.viewPaymentHistory(customerId);
     }
+
+
+    // config APIs
+
+    @PostMapping("/add-user")
+    public ResponseEntity addUser(@RequestParam String userName,@RequestParam String password)
+    {
+        return customerService.addUser(userName,password);
+    }
 }

@@ -8,15 +8,19 @@ import com.example.foodDood.exception.RestaurantNotFoundException;
 import com.example.foodDood.model.FoodItem;
 import com.example.foodDood.model.Restaurant;
 import com.example.foodDood.model.RestaurantOrder;
+import com.example.foodDood.model.configModel.User;
 import com.example.foodDood.repository.FoodItemRepo;
 import com.example.foodDood.repository.RestaurantOrderRepo;
 import com.example.foodDood.repository.RestaurantRepo;
+import com.example.foodDood.repository.configRepository.UserRepo;
 import com.example.foodDood.transformer.FoodItemTransformer;
 import com.example.foodDood.transformer.RestaurantOrderTransformer;
 import com.example.foodDood.transformer.RestaurantTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -151,4 +155,22 @@ public class RestaurantService {
 
         return new ResponseEntity<>(restaurantOrderResponseList,HttpStatus.FOUND);
     }
+
+    //config
+
+    @Autowired
+    UserRepo userRepo;
+    PasswordEncoder passwordEncoder=new BCryptPasswordEncoder();
+    public ResponseEntity addUser(String userName, String password) {
+        User user =new User();
+
+        user.setUserName(userName);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole("ROLE_RESTAURANTOWNER");
+
+        userRepo.save(user);
+        return new ResponseEntity<>(user,HttpStatus.CREATED);
+    }
+
+    //~config
 }

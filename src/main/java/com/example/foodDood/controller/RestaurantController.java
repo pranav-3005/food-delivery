@@ -50,6 +50,15 @@ public class RestaurantController {
         return restaurantService.viewRestaurantorders(restaurantId);
     }
 
+    // config
+    @PostMapping("/add-user")
+    public ResponseEntity addUser(@RequestParam String userName,@RequestParam String password)
+    {
+        return restaurantService.addUser(userName,password);
+    }
+
+    //~config
+
     //GetMapping("/get_total_coupons-and_get-total-coupon-amnt)
     //ResponseEntity  getCoupon(@Requestparams int restaurantid)
     /*
