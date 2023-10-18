@@ -58,6 +58,7 @@ public class RestaurantController {
     }
 
     //~config
+    //...
 
     //GetMapping("/get_total_coupons-and_get-total-coupon-amnt)
     //ResponseEntity  getCoupon(@Requestparams int restaurantid)
