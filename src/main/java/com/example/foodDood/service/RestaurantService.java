@@ -5,13 +5,9 @@ import com.example.foodDood.DTO.foodItemDTO.FoodItemResponse;
 import com.example.foodDood.DTO.restaurantDTO.RestaurantRequest;
 import com.example.foodDood.DTO.restaurantOrderDTO.RestaurantOrderResponse;
 import com.example.foodDood.exception.RestaurantNotFoundException;
-import com.example.foodDood.model.FoodItem;
-import com.example.foodDood.model.Restaurant;
-import com.example.foodDood.model.RestaurantOrder;
+import com.example.foodDood.model.*;
 import com.example.foodDood.model.configModel.User;
-import com.example.foodDood.repository.FoodItemRepo;
-import com.example.foodDood.repository.RestaurantOrderRepo;
-import com.example.foodDood.repository.RestaurantRepo;
+import com.example.foodDood.repository.*;
 import com.example.foodDood.repository.configRepository.UserRepo;
 import com.example.foodDood.transformer.FoodItemTransformer;
 import com.example.foodDood.transformer.RestaurantOrderTransformer;
@@ -36,6 +32,20 @@ public class RestaurantService {
     @Autowired
     FoodItemRepo foodItemRepo;
 
+    @Autowired
+    CartRepo cartRepo;
+
+    @Autowired
+    CustomerRepo customerRepo;
+
+    @Autowired
+    CartItemRepo cartItemRepo;
+
+    @Autowired
+    CustomerOrderRepo customerOrderRepo;
+
+    @Autowired
+    DeliveryPartnerRepo deliveryPartnerRepo;
     @Autowired
     RestaurantOrderRepo restaurantOrderRepo;
     public ResponseEntity addRestaurant(RestaurantRequest restaurantRequest) {
@@ -173,4 +183,89 @@ public class RestaurantService {
     }
 
     //~config
+
+
+
+    public ResponseEntity removeRestaurant(int restaurantId) {
+        Optional<Restaurant> isRestaurant=restaurantRepo.findById(restaurantId);
+
+        if(isRestaurant.isEmpty())
+            return new ResponseEntity<>("Invalid restaurant id !!!",HttpStatus.NOT_FOUND);
+
+        Restaurant restaurant=isRestaurant.get();
+        String restaurantName=restaurant.getRestaurantName();
+
+        //1. cart items & cart
+        List<Cart> cartList=cartRepo.findByRestaurantName(restaurant.getRestaurantName());
+
+        //1.1 remove carts at customer
+        for(Customer customer:customerRepo.findAll())
+        {
+            for (int i = 0; i < cartList.size() && customer.getCartList().size()>0; i++)
+            {
+                if (customer.getCartList().contains(cartList.get(i)) )
+                    customer.getCartList().remove(cartList.get(i));
+            }
+            customerRepo.save(customer);
+        }
+
+        //1.2 remove cart and cart items
+        for(Cart cart:cartList)
+        {
+            for(CartItem cartItem:cart.getCartItemList())
+            {
+                cartItemRepo.delete(cartItem);
+            }
+            cartRepo.delete(cart);
+        }
+
+
+
+        //2. customer order
+        List<CustomerOrder> customerOrderList=customerOrderRepo.findByRestaurantName(restaurant.getRestaurantName());
+
+        for (CustomerOrder customerOrder:customerOrderList)
+        {
+            customerOrder.setRestaurantName(customerOrder.getRestaurantName()+" (Currently restaurant unavailable)");
+            customerOrderRepo.save(customerOrder);
+        }
+
+
+
+        //3. restaurantOrder & deliveryPartner
+        List<RestaurantOrder> restaurantOrderList=restaurantOrderRepo.findByRestaurant(restaurant);
+
+        //3.1 remove the res orders from delivery partners
+        for(DeliveryPartner deliveryPartner:deliveryPartnerRepo.findAll())
+        {
+            for (int i=0;i<restaurantOrderList.size() && deliveryPartner.getRestaurantOrderList().size()>0; i++) {
+
+                if(deliveryPartner.getRestaurantOrderList().contains(restaurantOrderList.get(i)) )
+                {
+                    //restaurantOrderRepo.delete(restaurantOrder);
+                    deliveryPartner.getRestaurantOrderList().remove(restaurantOrderList.get(i));
+                }
+            }
+            deliveryPartnerRepo.save(deliveryPartner);
+        }
+
+        //3.2 delete the restaurantOrderList
+        restaurantOrderRepo.deleteAll(restaurantOrderList);
+
+
+
+        //4.food item & restaurant
+
+        List<FoodItem> foodItemList=foodItemRepo.findByRestaurant(restaurant);
+
+        foodItemRepo.deleteAll(foodItemList);
+        restaurantRepo.delete(restaurant);
+
+        //resposne
+        return new ResponseEntity("The restaurant - "+restaurantName+" is deleted successfully,\nAll the carts related to this restaurant is also removed suceessfully.",HttpStatus.ACCEPTED);
+
+
+    }
+
+
 }

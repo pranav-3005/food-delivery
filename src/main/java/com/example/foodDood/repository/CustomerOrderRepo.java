@@ -11,4 +11,6 @@ import java.util.List;
 public interface CustomerOrderRepo extends JpaRepository<CustomerOrder,Integer> {
 
     List<CustomerOrder> findByCustomer(Customer customer);
+
+    List<CustomerOrder> findByRestaurantName(String restaurantName);
 }

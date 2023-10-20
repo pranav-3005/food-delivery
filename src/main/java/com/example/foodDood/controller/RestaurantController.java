@@ -50,6 +50,12 @@ public class RestaurantController {
         return restaurantService.viewRestaurantorders(restaurantId);
     }
 
+    @DeleteMapping("/remove-restaurant")
+    public ResponseEntity removeRestaurant(@RequestParam int restaurantId)
+    {
+        return restaurantService.removeRestaurant(restaurantId);
+    }
+
     // config
     @PostMapping("/add-user")
     public ResponseEntity addUser(@RequestParam String userName,@RequestParam String password)
